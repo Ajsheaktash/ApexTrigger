@@ -1,0 +1,75 @@
+1.a. Create a trigger to prevent users to create a Lead with an 
+existing first name and last name.
+b. Add an error message on the first name field
+
+
+trigger leadtriggernew on Lead (before insert) {
+    list<lead> multilead=[select id,FirstName,LastName from lead];
+    for(lead singlelead:trigger.new){
+        for(integer i=0;i<multilead.size();i++){
+            if(singlelead.firstName==multilead[i].FirstName &&
+               singlelead.LastName==multilead[i].LastName){
+                singlelead.FirstName.addError('this name already exist');
+            }
+    }
+}
+}
+
+////////////
+2.a. Create a trigger to avoid deletion of the Account with a 
+contact.
+b. Add an «You can't delete an Account which has a related
+Contact» error message
+
+
+trigger AccountTriggeryeni on Account (before delete) {
+  list<Contact> multicon=[Select id, FirstName, LastName From Contact where Accountid=:Trigger.old];
+    for(Account acc:trigger.old){
+        if(multicon.size()>0){
+            acc.addError('You can\'t delete an Account which has a related Contact');
+        }
+    }
+    
+
+}
+////////////////////////////////////////////////////
+3.Create a trigger to update the description 
+a. As «This opportunity was updated by Lucian (your user 
+name as dynamic)» when an opportunity is updated,
+b. As «This opportunity was created by Lucian (your user name 
+as dynamic)» when an opportunity is created,
+
+
+trigger OpportunityTrigger on Opportunity (before insert,before update) {
+        switch on Trigger.operationType {
+        when BEFORE_INSERT {
+            for(Opportunity singleopp:Trigger.new){
+              singleopp.description='This Opportunity was created by '+UserInfo.getName();
+                }
+            }
+        when BEFORE_UPDATE {
+            for(Opportunity singleopp:Trigger.new){
+               singleopp.description='This Opportunity was updated by '+UserInfo.getName();
+                      }
+            }
+        
+       
+    }
+}
+
+
+//////////////////////////////
+4.Create a trigger to prevent users to change the Campaign 
+start date. 
+b. Add an «You cannot change campaign start date, please 
+contact your Admin» error message
+
+
+trigger CampaignTrigger on Campaign (before update) {
+    for(Campaign singlecamp:trigger.new){
+        if(singlecamp.StartDate!=trigger.oldmap.get(singlecamp.id).StartDate){
+            singlecamp.addError('You cannot change campaign start date, please contact your Admin');
+        }
+    }
+
+}
